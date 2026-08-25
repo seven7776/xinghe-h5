@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>七彩和弦 · AI声乐测评</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="brandbar"></div>
+<div class="brand">七彩和弦童声学院 · 以爱赋能 用心发声</div>
+
+<div class="steps">
+  <div class="step on">1 留资料</div><div class="step">2 做测评</div><div class="step">3 出报告</div>
+</div>
+
+<div class="card">
+  <h1>AI 声乐潜能测评</h1>
+  <p class="desc">
+    15 分钟测出孩子音准、节奏、乐感、音域、音色五个维度的真实水平，
+    测完立刻生成专业学情报告和专属学习路径。
+  </p>
+  <div style="margin-top:14px">
+    <span class="tag">五维雷达</span><span class="tag">秒出报告</span><span class="tag">名师标准</span>
+  </div>
+</div>
+
+<div class="card">
+  <h2>先留个联系方式</h2>
+  <p class="desc" style="margin-bottom:4px">报告和顾问老师都会用到，仅用于本次测评沟通</p>
+  <div class="field"><label>家长称呼</label><input id="f_name" placeholder="如：乐乐妈妈"></div>
+  <div class="field"><label>手机号</label><input id="f_phone" type="tel" maxlength="11" placeholder="11 位手机号"></div>
+  <button class="btn" onclick="start()">开始测评 →</button>
+</div>
+
+<p class="note">顾问跟进不推销 · 报告可分享</p>
+
+<script src="assets/mock.js"></script>
+<script>
+async function start() {
+  const name = f_name.value.trim(), phone = f_phone.value.trim();
+  if (!name) return alert('请填写家长称呼');
+  if (!/^1\d{10}$/.test(phone)) return alert('手机号格式不对');
+  const r = await XH.api('/api/lead', { name, phone });
+  if (r.ok) {
+    sessionStorage.setItem('xh_lead', JSON.stringify({ name, phone, leadId: r.leadId }));
+    XH.go('test.html');
+  } else alert('提交失败，请重试');
+}
+</script>
+</body>
+</html>
