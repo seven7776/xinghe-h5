@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>测评中 · 七彩和弦</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="brandbar"></div>
+<div class="steps">
+  <div class="step">1 留资料</div><div class="step on">2 做测评</div><div class="step">3 出报告</div>
+</div>
+
+<div class="card" id="intro">
+  <h2>第一部分 · 基础情况</h2>
+  <p class="desc" style="margin-bottom:6px">共 6 个小问题，1 分钟填完</p>
+  <div id="qlist"></div>
+  <button class="btn" onclick="goRecord()">第二部分：清唱录音 →</button>
+</div>
+
+<div class="card" id="recpart" style="display:none">
+  <h2>第二部分 · 清唱一段</h2>
+  <p class="desc">
+    让孩子清唱刚才填的那首歌的副歌，30 秒左右，不用伴奏。
+    手机离孩子一米左右，环境安静些。
+  </p>
+  <div class="field" style="text-align:center;margin-top:18px">
+    <button class="btn ghost" onclick="toggleRec()" id="recbtn">🎤 点击开始录音</button>
+    <p class="note" id="recstate" style="margin-top:10px">录完点一下结束，可以先试听再提交</p>
+    <audio id="player" controls style="display:none;width:100%;margin-top:10px"></audio>
+    <button class="btn ghost" id="redobtn" style="display:none;margin-top:8px" onclick="toggleRec()">↻ 重录</button>
+  </div>
+  <button class="btn" id="subbtn" style="display:none" onclick="submit()">提交测评，生成报告 →</button>
+</div>
+
+<script src="assets/mock.js"></script>
+<script src="assets/recorder.js"></script>
+<script>
+const lead = JSON.parse(sessionStorage.getItem('xh_lead') || '{}');
+const ans = {};
+const qlist = document.getElementById('qlist');
+QUESTIONS.forEach((q, i) => {
+  const d = document.createElement('div'); d.className = 'q';
+  d.innerHTML = `<div class="qt">${i + 1}. ${q.t}</div>` +
+    (q.input
+      ? `<input style="width:100%;height:44px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:16px;padding:0 10px" oninput="ans['${q.k}']=this.value" placeholder="歌名">`
+      : `<div class="opts">` + q.opts.map(o =>
+          `<div class="opt" onclick="pick(this,'${q.k}','${o}')">${o}</div>`).join('') + `</div>`);
+  qlist.appendChild(d);
+});
+function pick(el, k, v) {
+  el.parentElement.querySelectorAll('.opt').forEach(x => x.classList.remove('sel'));
+  el.classList.add('sel'); ans[k] = v;
+}
+function goRecord() {
+  const need = QUESTIONS.filter(q => !q.input && !ans[q.k]);
+  if (need.length) return alert('还有 ' + need.length + ' 题没选完');
+  intro.style.display = 'none'; recpart.style.display = 'block';
+  window.scrollTo(0, 0);
+}
+let rec = null; // {blob, duration, url}
+async function toggleRec() {
+  const btn = document.getElementById('recbtn');
+  if (Recorder.recording) {
+    // 结束录音
+    const out = await Recorder.stop();
+    rec = out;
+    btn.textContent = '✔ 已录好';
+    btn.style.background = ''; btn.style.color = '';
+    if (out.duration < 3) {
+      recstate.textContent = '只有 ' + out.duration.toFixed(1) + ' 秒，太短了，建议重录';
+    } else {
+      recstate.textContent = '已录 ' + out.duration.toFixed(1) + ' 秒（' + Math.round(out.size / 1024) + 'KB wav）';
+    }
+    player.src = out.url; player.style.display = 'block';
+    redobtn.style.display = 'block';
+    subbtn.style.display = 'block';
+    window.__recording = out; // 提交时上传用
+    return;
+  }
+  // 开始（新）录音
+  try {
+    rec = null; player.style.display = 'none'; redobtn.style.display = 'none'; subbtn.style.display = 'none';
+    await Recorder.start();
+    btn.textContent = '⏺ 录音中…再点一下结束';
+    btn.style.background = '#ffe3e3'; btn.style.color = '#c0392b';
+    recstate.textContent = '正在录音';
+  } catch (e) {
+    alert('无法打开麦克风：' + (e.message || e) + '\n请在微信里允许麦克风权限；如仍不行，可能需升级微信或换安卓手机测试');
+  }
+}
+async function submit() {
+  subbtn.textContent = 'AI 评分中…'; subbtn.disabled = true;
+  // TODO 正式版: FormData 上传 window.__recording.blob 到后端 -> 后端调腾讯评分
+  const r = await XH.api('/api/score', { lead, ans, duration: rec ? rec.duration : 0 });
+  if (r.ok) {
+    sessionStorage.setItem('xh_dims', JSON.stringify(r.dims));
+    sessionStorage.setItem('xh_ans', JSON.stringify(ans));
+    XH.go('report.html');
+  } else { alert('评分失败，请重试'); subbtn.textContent = '提交测评，生成报告 →'; subbtn.disabled = false; }
+}
+</script>
+</body>
+</html>
