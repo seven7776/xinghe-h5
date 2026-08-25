@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>学情报告 · 七彩和弦</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="brandbar"></div>
+<div class="steps">
+  <div class="step">1 留资料</div><div class="step">2 做测评</div><div class="step on">3 出报告</div>
+</div>
+
+<div class="card" style="text-align:center">
+  <h1 id="greet">孩子的测评报告</h1>
+  <p class="desc" id="subline">五维雷达 + 总评 + 学习路径建议</p>
+  <div style="margin:18px auto 8px;width:280px;height:240px">
+    <canvas id="radar" width="560" height="480" style="width:100%"></canvas>
+  </div>
+  <div class="rec"><span class="big">🎯</span>
+    <div><b id="band">…</b><div class="desc" id="cls">…</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>五个维度怎么看</h2>
+  <div id="dimlist"></div>
+  <p class="note" style="text-align:left;margin-top:10px">各项解读文字由正式版的报告模板生成，本版为骨架示意</p>
+</div>
+
+<div class="card">
+  <h2>下一步</h2>
+  <p class="desc">报告完整版含曲目路径与练习建议，正式版由顾问老师一对一讲解。</p>
+  <button class="btn ghost" onclick="alert('分享海报功能在正式版上线')">分享这份报告</button>
+</div>
+
+<script src="assets/mock.js"></script>
+<script>
+const isDemo = new URLSearchParams(location.search).get('demo') === '1';
+let dims = JSON.parse(sessionStorage.getItem('xh_dims') || 'null');
+let lead = JSON.parse(sessionStorage.getItem('xh_lead') || '{}');
+if (!dims && !isDemo) location.href = 'index.html'; // 无数据且非演示模式 -> 回首页
+if (!dims) { // 演示兜底：直接开此页时用一组假数据，方便预览报告版式
+  dims = { pitch: 86, rhythm: 78, feel: 72, range: 69, tone: 81 };
+  lead = { name: '乐乐' };
+}
+
+const NAMES = { pitch: '音准', rhythm: '节奏', feel: '乐感', range: '音域', tone: '音色' };
+const total = XH.total(dims), plan = XH.plan(total);
+greet.textContent = (lead.name || '孩子') + '的测评报告';
+band.textContent = plan.band + ' · 总分 ' + total;
+cls.textContent = '推荐：' + plan.cls;
+
+// 五维雷达（纯 canvas，无依赖）
+(function radar() {
+  const c = radar.getContext('2d'), W = 560, H = 480, cx = W/2, cy = H/2 + 10, R = 170;
+  const keys = Object.keys(NAMES), n = keys.length;
+  const pt = (i, r) => { const a = -Math.PI/2 + i*2*Math.PI/n; return [cx + r*Math.cos(a), cy + r*Math.sin(a)]; };
+  c.strokeStyle = '#e5e7eb'; c.fillStyle = '#f8fafc';
+  for (let ring = 1; ring <= 4; ring++) {
+    c.beginPath();
+    for (let i = 0; i <= n; i++) { const [x,y] = pt(i%n, R*ring/4); i ? c.lineTo(x,y) : c.moveTo(x,y); }
+    c.closePath(); c.fill(); c.stroke();
+  }
+  for (let i = 0; i < n; i++) { const [x,y] = pt(i, R); c.beginPath(); c.moveTo(cx,cy); c.lineTo(x,y); c.stroke(); }
+  // 数据面
+  const g = c.createLinearGradient(0,0,W,H); g.addColorStop(0,'rgba(91,108,240,.75)'); g.addColorStop(1,'rgba(151,117,250,.55)');
+  c.beginPath(); c.fillStyle = g; c.strokeStyle = '#5b6cf0'; c.lineWidth = 3;
+  keys.forEach((k,i) => { const [x,y] = pt(i, R*dims[k]/100); i ? c.lineTo(x,y) : c.moveTo(x,y); });
+  c.closePath(); c.fill(); c.stroke();
+  keys.forEach((k,i) => { const [x,y] = pt(i, R*dims[k]/100); c.beginPath(); c.arc(x,y,6,0,7); c.fillStyle='#5b6cf0'; c.fill(); });
+  // 标签+分值
+  c.font = '600 26px sans-serif'; c.fillStyle = '#22273a'; c.textAlign = 'center';
+  keys.forEach((k,i) => { const [x,y] = pt(i, R+38); c.fillText(NAMES[k], x, y); c.fillStyle='#6b7280'; c.font='24px sans-serif'; c.fillText(dims[k], x, y+28); c.fillStyle='#22273a'; c.font='600 26px sans-serif'; });
+})();
+
+// 维度明细
+const dimlist = document.getElementById('dimlist');
+Object.entries(NAMES).forEach(([k, name]) => {
+  const s = dims[k];
+  const lv = s >= 85 ? '优秀' : s >= 70 ? '良好' : s >= 55 ? '有潜力' : '待提升';
+  const d = document.createElement('div');
+  d.innerHTML = `<div style="display:flex;justify-content:space-between;margin:12px 0 4px"><b>${name}</b><span style="color:${s>=70?'#37b24d':'#5b6cf0'}">${s} · ${lv}</span></div>
+  <div style="background:#eef0ff;height:8px;border-radius:4px"><div style="width:${s}%;height:8px;border-radius:4px;background:var(--rainbow)"></div></div>`;
+  dimlist.appendChild(d);
+});
+</script>
+</body>
+</html>
