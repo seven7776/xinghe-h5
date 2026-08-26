@@ -192,14 +192,22 @@
 <script src="assets/mock.js"></script>
 <script>
 const ORGANS = {
-  head:      { e:'🔔', n:'头腔',   role:'唱高音的时候，声音会跑到头顶这里来共鸣，让高音又亮又轻松！', tip:'小秘诀：唱高音时感觉声音在头顶"嗡嗡"响。' },
-  nose:      { e:'👃', n:'鼻腔',   role:'鼻腔是一个共鸣箱，让声音更集中、更亮。哼歌的时候它就在工作啦。', tip:'小秘诀：闭嘴哼"嗯——"，鼻子会痒痒的。' },
-  mouth:     { e:'👄', n:'口腔',   role:'嘴巴不光咬字，还是个大音箱！嘴巴张开的形状不一样，声音的颜色就不一样。', tip:'小秘诀：唱歌时嘴巴张大一点，声音更好听。' },
-  cord:      { e:'🎻', n:'声带',   role:'声带是藏在喉咙里的两片小琴弦！气息一吹，它就振动，声音就出来啦。', tip:'小秘诀：轻轻摸喉咙，说话时它会震动哦。' },
-  trachea:   { e:'🌬️', n:'气管',  role:'气管是气息的专用通道，把肺里的气稳稳地送到声带那里去。', tip:'小秘诀：深吸一口气，感受气流经过喉咙。' },
-  lung:      { e:'🫁', n:'肺',     role:'肺是气息的发动机！唱歌用的气都是从这里来的，气息足才能唱得长。', tip:'小秘诀：唱歌前先深深吸一口气存起来。' },
-  diaphragm: { e:'💪', n:'横膈膜', role:'横膈膜在肺的下面，是控制气息的"小活塞"。用肚子呼吸唱歌，就是它在用力！', tip:'小秘诀：躺下，把手放肚子上，吸气时肚子鼓起来。' },
+  head:      { e:'🔔', n:'头腔',   role:'唱高音的时候，声音会跑到头顶这里来共鸣，让高音又亮又轻松！听——这是高高的哼鸣声。', tip:'小秘诀：唱高音时感觉声音在头顶"嗡嗡"响。' },
+  nose:      { e:'👃', n:'鼻腔',   role:'鼻腔是一个共鸣箱，让声音更集中、更亮。听——这是闭着嘴哼歌的声音。', tip:'小秘诀：闭嘴哼"嗯——"，鼻子会痒痒的。' },
+  mouth:     { e:'👄', n:'口腔',   role:'嘴巴不光咬字，还是个大音箱！听——张开嘴唱"啊"，声音马上变亮了。', tip:'小秘诀：唱歌时嘴巴张大一点，声音更好听。' },
+  cord:      { e:'🎻', n:'声带',   role:'声带是藏在喉咙里的两片小琴弦！气息一吹，它就振动。听——这就是歌声最开始的样子。', tip:'小秘诀：轻轻摸喉咙，说话时它会震动哦。' },
+  trachea:   { e:'🌬️', n:'气管',  role:'气管是气息的专用通道，把肺里的气稳稳地送到声带那里去。听——这是气流的呼呼声。', tip:'小秘诀：深吸一口气，感受气流经过喉咙。' },
+  lung:      { e:'🫁', n:'肺',     role:'肺是气息的发动机！唱歌用的气都是从这里来的。听——这是深深吸气的声音。', tip:'小秘诀：唱歌前先深深吸一口气存起来。' },
+  diaphragm: { e:'💪', n:'横膈膜', role:'横膈膜在肺的下面，是控制气息的"小活塞"。听——它在一下一下地弹跳用力！', tip:'小秘诀：躺下，把手放肚子上，吸气时肚子鼓起来。' },
 };
+let curAudio = null;
+function playOrganSound(k) {
+  try {
+    if (curAudio) { curAudio.pause(); curAudio.currentTime = 0; }
+    curAudio = new Audio('assets/audio/' + k + '.mp3');
+    curAudio.play().catch(() => {});
+  } catch (e) {}
+}
 const card = { e:document.getElementById('oEmoji'), n:document.getElementById('oName'), r:document.getElementById('oRole'), t:document.getElementById('oTip') };
 const LEARN_PRAISE = ['太棒了！','真聪明！','好厉害！','记住啦！','答对啦！'];
 document.querySelectorAll('.organ-hit').forEach(el => {
@@ -210,6 +218,7 @@ document.querySelectorAll('.organ-hit').forEach(el => {
     document.querySelectorAll('.organ-hit[data-k="'+k+'"]').forEach(x => x.classList.add('on'));
     card.e.textContent = o.e; card.n.textContent = o.n; card.r.textContent = o.role;
     card.t.textContent = o.tip; card.t.style.display = 'block';
+    playOrganSound(k);
     showStarToast(LEARN_PRAISE[Math.floor(Math.random()*LEARN_PRAISE.length)], '这是' + o.n);
   });
 });
