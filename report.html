@@ -44,10 +44,13 @@
 <script>
 const isDemo = new URLSearchParams(location.search).get('demo') === '1';
 let dims = null, lead = {};
+let scoremeta = { real: [], pending: [] };
 try { dims = JSON.parse(sessionStorage.getItem('xh_dims') || 'null'); } catch (e) {}
 try { lead = JSON.parse(sessionStorage.getItem('xh_lead') || '{}'); } catch (e) {}
+try { scoremeta = JSON.parse(sessionStorage.getItem('xh_scoremeta') || '{"real":[],"pending":[]}'); } catch (e) {}
 if (!dims && !isDemo) location.href = 'index.html';
 if (!dims) { dims = { pitch: 86, rhythm: 78, feel: 72, range: 69, tone: 81 }; lead = { name: '乐乐' }; }
+else showStarToast(null, '宝贝完成测评啦，报告出来咯～'); // 提交成功跳到报告页时激励一次
 // 防御：确保五维都是 0-100 数字
 const NAMES = { pitch: '音准', rhythm: '节奏', feel: '乐感', range: '音域', tone: '音色' };
 Object.keys(NAMES).forEach(k => {
@@ -97,9 +100,11 @@ try { drawRadar(); } catch (e) {
 const dimlist = $('dimlist');
 Object.entries(NAMES).forEach(([k, name]) => {
   const s = dims[k];
+  const isPending = (scoremeta.pending || []).includes(k);
   const lv = s >= 85 ? '优秀' : s >= 70 ? '良好' : s >= 55 ? '有潜力' : '待提升';
+  const tag = isPending ? ' <span style="font-size:11px;color:#9ca3af">· AI接入中</span>' : '';
   const d = document.createElement('div');
-  d.innerHTML = `<div style="display:flex;justify-content:space-between;margin:12px 0 4px"><b>${name}</b><span style="color:${s >= 70 ? '#37b24d' : '#5b6cf0'}">${s} · ${lv}</span></div>
+  d.innerHTML = `<div style="display:flex;justify-content:space-between;margin:12px 0 4px"><b>${name}${tag}</b><span style="color:${s >= 70 ? '#37b24d' : '#5b6cf0'}">${s} · ${lv}</span></div>
   <div style="background:#eef0ff;height:8px;border-radius:4px"><div style="width:${s}%;height:8px;border-radius:4px;background:var(--rainbow)"></div></div>`;
   dimlist.appendChild(d);
 });

@@ -1,10 +1,30 @@
 // mock.js — 星河 H5 MVP 的本地假后端。
 // 真后端接上后，把 fetch('/api/xxx') 直连即可，页面代码不用改。
 const XH = {
-  // ---- 调用后端（现在走 mock）----
+  // ---- 后端地址：本地联调走真后端，线上 Pages 暂走 mock ----
+  base: (location.protocol === 'https:' && location.hostname.includes('github.io')) ? null : 'http://127.0.0.1:8890',
+
   async api(path, body) {
-    await new Promise(r => setTimeout(r, 600)); // 模拟网络延迟
-    return this.mock(path, body);
+    if (!this.base) { // 线上演示 -> mock
+      await new Promise(r => setTimeout(r, 600));
+      return this.mock(path, body);
+    }
+    try {
+      const r = await fetch(this.base + path, {
+        method: 'POST',
+        headers: path === '/api/lead' ? { 'Content-Type': 'application/json' } : undefined,
+        body: path === '/api/lead' ? JSON.stringify(body) : (() => {
+          const fd = new FormData();
+          Object.entries(body || {}).forEach(([k, v]) => v instanceof Blob ? fd.append('file', v, 'rec.wav') : fd.append(k, v));
+          return fd;
+        })()
+      });
+      return await r.json();
+    } catch (e) {
+      console.warn('backend down, fallback mock', e.message);
+      await new Promise(r => setTimeout(r, 600));
+      return this.mock(path, body);
+    }
   },
 
   mock(path, body) {
@@ -29,6 +49,31 @@ const XH = {
   // ---- 页面跳转 ----
   go(page) { location.href = page; }
 };
+
+// ---- 录音成功 · 星星激励弹窗（全局）----
+// showStarToast('太棒了！', '宝贝的声音真好听', function(){ ... 弹窗关掉后执行 ... })
+const STAR_PRAISE = ['太棒了！', '非常棒！', '唱得真好！', '好厉害！', '太出色了！', '宝贝真棒！'];
+function showStarToast(text, sub, done) {
+  text = text || STAR_PRAISE[Math.floor(Math.random() * STAR_PRAISE.length)];
+  const el = document.createElement('div');
+  el.className = 'star-toast';
+  el.innerHTML =
+    '<div class="toast-card">' +
+      '<div class="toast-stars">' +
+        '<span class="st main">⭐</span>' +
+        '<span class="st s1">✨</span><span class="st s2">⭐</span>' +
+        '<span class="st s3">✨</span><span class="st s4">⭐</span><span class="st s5">✨</span>' +
+      '</div>' +
+      '<div class="toast-text">' + text + '</div>' +
+      (sub ? '<div class="toast-sub">' + sub + '</div>' : '') +
+    '</div>';
+  document.body.appendChild(el);
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('show')));
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => { el.remove(); if (done) done(); }, 280);
+  }, 1500);
+}
 
 // 测评问卷题目（占位 6 题，正式题目走 05 提示词工程重写版）
 const QUESTIONS = [

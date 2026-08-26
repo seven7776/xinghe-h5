@@ -78,3 +78,128 @@ h2 { font-size: 17px; margin-bottom: 12px; }
 }
 .rec .big { font-size: 26px; }
 .note { font-size: 12px; color: #9ca3af; text-align: center; line-height: 1.6; }
+
+/* ---- 环境提醒闸门（测评开始前满屏提醒） ---- */
+.env-gate {
+  position: fixed; inset: 0; z-index: 99;
+  background: linear-gradient(160deg, #5b6cf0 0%, #7a5cf5 55%, #9775fa 100%);
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  padding: 34px 30px; text-align: center; color: #fff;
+  transition: opacity .45s ease, visibility .45s;
+}
+.env-gate.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+.env-gate .rainbow-top {
+  position: absolute; top: 0; left: 0; right: 0; height: 8px;
+  background: var(--rainbow);
+}
+.env-gate .gate-icon { font-size: 72px; line-height: 1; animation: gateFloat 2.2s ease-in-out infinite; }
+@keyframes gateFloat { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-10px) } }
+.env-gate h2 {
+  color: #fff; font-size: 26px; margin: 22px 0 6px; letter-spacing: 1px;
+}
+.env-gate .gate-sub { font-size: 15px; opacity: .92; margin-bottom: 26px; }
+.env-gate .gate-tips {
+  background: rgba(255,255,255,.14); border: 1.5px solid rgba(255,255,255,.25);
+  border-radius: 16px; padding: 18px 20px; width: 100%; max-width: 340px;
+  text-align: left; backdrop-filter: blur(4px);
+}
+.env-gate .gate-tips .tip {
+  display: flex; align-items: flex-start; gap: 10px; font-size: 15px;
+  line-height: 1.6; margin: 8px 0;
+}
+.env-gate .gate-tips .tip .ico { font-size: 18px; flex-shrink: 0; }
+.env-gate .gate-warn {
+  margin-top: 18px; font-size: 13px; color: #ffe08a; line-height: 1.6;
+  display: flex; align-items: center; gap: 6px; justify-content: center;
+}
+.env-gate .gate-btn {
+  display: block; width: 100%; max-width: 340px; height: 54px; margin-top: 26px;
+  border: none; border-radius: 27px; background: #fff; color: var(--brand);
+  font-size: 18px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0,0,0,.18);
+}
+.env-gate .gate-btn:active { transform: scale(.97); }
+
+/* ---- 录音成功 · 星星激励弹窗 ---- */
+.star-toast {
+  position: fixed; inset: 0; z-index: 120;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(20, 22, 40, .45); backdrop-filter: blur(3px);
+  opacity: 0; visibility: hidden; transition: opacity .25s ease, visibility .25s;
+}
+.star-toast.show { opacity: 1; visibility: visible; }
+.star-toast .toast-card {
+  background: #fff; border-radius: 24px; padding: 30px 34px 26px;
+  text-align: center; max-width: 320px; width: 84%;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+  transform: scale(.6); transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.star-toast.show .toast-card { transform: scale(1); }
+.star-toast .toast-stars { position: relative; height: 84px; margin-bottom: 4px; }
+.star-toast .st {
+  position: absolute; left: 50%; top: 50%; font-size: 30px;
+  opacity: 0; animation: starPop .9s ease forwards;
+}
+.star-toast .st.main { font-size: 58px; margin: -29px 0 0 -29px; animation: starMain 1s ease forwards; }
+@keyframes starMain {
+  0% { transform: scale(0) rotate(-40deg); opacity: 0; }
+  45% { transform: scale(1.3) rotate(8deg); opacity: 1; }
+  60% { transform: scale(.92) rotate(0); }
+  72%, 100% { transform: scale(1); opacity: 1; }
+  82% { transform: scale(1.12); } 88% { transform: scale(.95); }
+}
+.star-toast .st.s1 { margin: -34px 0 0 -52px; animation-delay: .12s; }
+.star-toast .st.s2 { margin: -40px 0 0 22px; animation-delay: .22s; font-size: 24px; }
+.star-toast .st.s3 { margin: 6px 0 0 -58px; animation-delay: .3s; font-size: 22px; }
+.star-toast .st.s4 { margin: 4px 0 0 40px; animation-delay: .38s; font-size: 26px; }
+.star-toast .st.s5 { margin: -8px 0 0 -16px; animation-delay: .46s; font-size: 20px; }
+@keyframes starPop {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.4); opacity: 1; }
+  70%, 100% { transform: scale(1); opacity: 1; }
+  82% { transform: scale(1.2); }
+}
+.star-toast .toast-text {
+  font-size: 26px; font-weight: 800; margin-top: 2px;
+  background: var(--rainbow); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.star-toast .toast-sub { font-size: 14px; color: var(--sub); margin-top: 8px; line-height: 1.5; }
+
+/* ---- 模拟钢琴键盘 ---- */
+.pk { position: relative; margin: 8px 0; }
+.pk-wrap {
+  position: relative; width: 100%; height: 95px; user-select: none;
+  border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,.08);
+  touch-action: manipulation;
+}
+.pk-w {
+  position: absolute; top: 0; height: 100%;
+  background: linear-gradient(180deg, #fff 0%, #f4f5f7 92%, #e4e6ea 100%);
+  border-right: 1px solid #d7dae0; border-bottom: 2px solid #cfd3da;
+  border-radius: 0 0 6px 6px; cursor: pointer; box-sizing: border-box;
+}
+.pk-w:last-child { border-right: none; }
+.pk-w.pk-down, .pk-w:active { background: linear-gradient(180deg, #eef0ff 0%, #dfe4ff 100%); }
+.pk-clabel {
+  position: absolute; bottom: 6px; left: 0; right: 0; text-align: center;
+  font-size: 10px; color: #9aa0ae; pointer-events: none;
+}
+.pk-b {
+  position: absolute; top: 0; height: 58%; z-index: 2;
+  background: linear-gradient(180deg, #3a3f52 0%, #14162a 100%);
+  border-radius: 0 0 5px 5px; cursor: pointer; box-sizing: border-box;
+  box-shadow: 0 2px 4px rgba(0,0,0,.35);
+}
+.pk-b.pk-down, .pk-b:active { background: linear-gradient(180deg, #5b6cf0 0%, #2a2f6b 100%); }
+/* 高亮引导（音域环节） */
+.pk-w.pk-hl { background: linear-gradient(180deg, #ffe9a8 0%, #ffd43b 100%); box-shadow: inset 0 0 0 2px #ffa94d; }
+.pk-b.pk-hl { background: linear-gradient(180deg, #ffa94d 0%, #f08c00 100%); box-shadow: inset 0 0 0 2px #ffd43b; }
+.pk-w.pk-hl .pk-clabel { color: #b35500; font-weight: 700; }
+/* 卡通箭头（在键盘下方、朝上指向高亮琴键） */
+.pk-arrow {
+  position: absolute; bottom: -34px; transform: translateX(-50%);
+  font-size: 30px; z-index: 5; pointer-events: none;
+  animation: pkBounce 0.9s ease-in-out infinite;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,.2));
+}
+@keyframes pkBounce { 0%,100% { transform: translateX(-50%) translateY(0) } 50% { transform: translateX(-50%) translateY(-8px) } }

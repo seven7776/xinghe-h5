@@ -6,8 +6,38 @@
 <title>测评中 · 七彩和弦</title>
 <link rel="icon" type="image/png" href="assets/favicon.png">
 <link rel="stylesheet" href="assets/style.css">
+<style>
+  .sec { display:none; }
+  .sec.on { display:block; }
+  .kbd-hint { font-size:13px; color:var(--sub); text-align:center; margin:6px 0 2px; }
+  .song-item { display:flex; align-items:center; gap:8px; border:1.5px solid #e5e7eb; border-radius:10px; padding:9px 10px; margin:7px 0; background:#fafafa; }
+  .song-item.sel { border-color:var(--brand); background:#eef0ff; }
+  .song-item .snm { flex:1; font-size:14px; font-weight:600; }
+  .song-item .lv { font-size:10px; color:#9aa0ae; }
+  .mini-btn { border:none; border-radius:16px; padding:6px 12px; font-size:13px; cursor:pointer; background:#eef0ff; color:var(--brand); font-weight:600; }
+  .mini-btn.rec-on { background:#ffe3e3; color:#c0392b; }
+  .recbar { text-align:center; margin:14px 0; }
+  .recbar .state { font-size:12px; color:#9ca3af; margin-top:8px; }
+  .tap-pad { width:120px; height:120px; border-radius:50%; border:none; background:var(--brand); color:#fff; font-size:40px; cursor:pointer; box-shadow:0 6px 20px rgba(91,108,240,.4); }
+  .tap-pad:active { transform:scale(.94); }
+</style>
 </head>
 <body>
+<!-- 环境提醒闸门 -->
+<div class="env-gate" id="envGate">
+  <div class="rainbow-top"></div>
+  <div class="gate-icon">🎧</div>
+  <h2>测评前的小提醒</h2>
+  <p class="gate-sub">给宝贝一个能听清自己的环境</p>
+  <div class="gate-tips">
+    <div class="tip"><span class="ico">🤫</span><span>请在<strong>安静、低噪音</strong>的环境下进行测评哦~</span></div>
+    <div class="tip"><span class="ico">📵</span><span>关掉电视、音乐，避免旁人说话</span></div>
+    <div class="tip"><span class="ico">📏</span><span>手机离宝贝一米左右，别贴太近</span></div>
+  </div>
+  <div class="gate-warn">⚠️ 环境太吵可能会影响测评结果的准确性~</div>
+  <button class="gate-btn" onclick="dismissGate()">准备好了，开始测评 ✨</button>
+</div>
+
 <div class="brandhead">
   <img class="logo" src="assets/logo-wide.png" alt="七彩和弦童声学院">
 </div>
@@ -17,32 +47,79 @@
   <div class="step">1 留资料</div><div class="step on">2 做测评</div><div class="step">3 出报告</div>
 </div>
 
-<div class="card" id="intro">
+<!-- ===== 第一部分 · 基础情况 ===== -->
+<div class="card sec on" id="sec-intro">
   <h2>第一部分 · 基础情况</h2>
   <p class="desc" style="margin-bottom:6px">共 6 个小问题，1 分钟填完</p>
   <div id="qlist"></div>
-  <button class="btn" onclick="goRecord()">第二部分：清唱录音 →</button>
+  <button class="btn" onclick="goSection('pitch')">下一步：音准小测试 →</button>
 </div>
 
-<div class="card" id="recpart" style="display:none">
-  <h2>第二部分 · 清唱一段</h2>
-  <p class="desc">
-    让孩子清唱刚才填的那首歌的副歌，30 秒左右，不用伴奏。
-    手机离孩子一米左右，环境安静些。
-  </p>
-  <div class="field" style="text-align:center;margin-top:18px">
-    <button class="btn ghost" onclick="toggleRec()" id="recbtn">🎤 点击开始录音</button>
-    <p class="note" id="recstate" style="margin-top:10px">录完点一下结束，可以先试听再提交</p>
-    <audio id="player" controls style="display:none;width:100%;margin-top:10px"></audio>
-    <button class="btn ghost" id="redobtn" style="display:none;margin-top:8px" onclick="toggleRec()">↻ 重录</button>
+<!-- ===== 第二部分 · 音准 ===== -->
+<div class="card sec" id="sec-pitch">
+  <h2>第二部分 · 音准</h2>
+  <p class="desc">请在钢琴上弹奏音符，再让宝贝跟着唱一唱~ 选一个舒服的音就好。</p>
+  <div id="kb-pitch"></div>
+  <div class="kbd-hint" id="pitch-hint">先点一个琴键听音 → 再点下方"跟唱"录音</div>
+  <div class="recbar">
+    <button class="mini-btn" id="pitch-recbtn" onclick="pitchToggleRec()">🎤 跟唱</button>
+    <div class="state" id="pitch-state"></div>
+    <audio id="pitch-player" controls style="display:none;width:100%;margin-top:8px"></audio>
   </div>
-  <button class="btn" id="subbtn" style="display:none" onclick="submit()">提交测评，生成报告 →</button>
+  <button class="btn" id="pitch-next" style="display:none" onclick="goSection('range')">下一步：音域测试 →</button>
+</div>
+
+<!-- ===== 第三部分 · 音域 ===== -->
+<div class="card sec" id="sec-range">
+  <h2>第三部分 · 音域</h2>
+  <p class="desc" id="range-desc">在这里弹奏钢琴（低音区），让宝贝跟着唱一唱~</p>
+  <div id="kb-range"></div>
+  <div class="recbar">
+    <button class="mini-btn" id="range-recbtn" onclick="rangeToggleRec()">🎤 跟唱</button>
+    <div class="state" id="range-state"></div>
+  </div>
+  <button class="btn" id="range-next" style="display:none" onclick="rangeNext()">继续 →</button>
+</div>
+
+<!-- ===== 第四部分 · 节奏 ===== -->
+<div class="card sec" id="sec-rhythm">
+  <h2>第四部分 · 节奏</h2>
+  <p class="desc">听一听下面的节奏，然后跟着拍一拍~</p>
+  <div style="text-align:center;margin:14px 0">
+    <div id="rhythm-pattern" style="font-size:30px;letter-spacing:6px;min-height:44px"></div>
+    <button class="mini-btn" onclick="playRhythm()">🔊 试听节奏</button>
+  </div>
+  <div class="recbar">
+    <button class="tap-pad" id="tap-pad" onclick="tapPad()">👏</button>
+    <div class="state" id="rhythm-state">点上方拍手按钮，跟着节奏拍</div>
+  </div>
+  <button class="btn" id="rhythm-next" style="display:none" onclick="goSection('song')">下一步：唱首歌 →</button>
+</div>
+
+<!-- ===== 第五部分 · 音色乐感（选歌清唱） ===== -->
+<div class="card sec" id="sec-song">
+  <h2>第五部分 · 唱一首拿手的歌</h2>
+  <p class="desc">选一首宝贝熟悉的歌曲，跟着唱一唱~ 可以先点试听再唱。</p>
+  <div id="songlist"></div>
+  <div class="recbar">
+    <div class="state" id="song-state">选歌后点右侧"试唱"录音（约1分钟清唱）</div>
+  </div>
+  <button class="btn" id="submit-btn" style="display:none" onclick="submitAll()">提交测评，生成报告 →</button>
 </div>
 
 <script src="assets/mock.js"></script>
 <script src="assets/recorder.js"></script>
+<script src="assets/keyboard.js"></script>
 <script>
+// ---------- 环境闸门 ----------
+document.body.style.overflow = 'hidden';
+function dismissGate() {
+  document.getElementById('envGate').classList.add('hide');
+  document.body.style.overflow = '';
+}
 const lead = JSON.parse(sessionStorage.getItem('xh_lead') || '{}');
+
+// ---------- 第一部分 问卷 ----------
 const ans = {};
 const qlist = document.getElementById('qlist');
 QUESTIONS.forEach((q, i) => {
@@ -50,61 +127,227 @@ QUESTIONS.forEach((q, i) => {
   d.innerHTML = `<div class="qt">${i + 1}. ${q.t}</div>` +
     (q.input
       ? `<input style="width:100%;height:44px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:16px;padding:0 10px" oninput="ans['${q.k}']=this.value" placeholder="歌名">`
-      : `<div class="opts">` + q.opts.map(o =>
-          `<div class="opt" onclick="pick(this,'${q.k}','${o}')">${o}</div>`).join('') + `</div>`);
+      : `<div class="opts">` + q.opts.map(o => `<div class="opt" onclick="pick(this,'${q.k}','${o}')">${o}</div>`).join('') + `</div>`);
   qlist.appendChild(d);
 });
 function pick(el, k, v) {
   el.parentElement.querySelectorAll('.opt').forEach(x => x.classList.remove('sel'));
   el.classList.add('sel'); ans[k] = v;
 }
-function goRecord() {
-  const need = QUESTIONS.filter(q => !q.input && !ans[q.k]);
-  if (need.length) return alert('还有 ' + need.length + ' 题没选完');
-  intro.style.display = 'none'; recpart.style.display = 'block';
+
+// ---------- 环节切换 ----------
+function goSection(name) {
+  if (name === 'pitch') { // 从问卷进音准前校验
+    const need = QUESTIONS.filter(q => !q.input && !ans[q.k]);
+    if (need.length) return alert('还有 ' + need.length + ' 题没选完');
+  }
+  document.querySelectorAll('.sec').forEach(s => s.classList.remove('on'));
+  document.getElementById('sec-' + name).classList.add('on');
   window.scrollTo(0, 0);
 }
-let rec = null; // {blob, duration, url}
-async function toggleRec() {
-  const btn = document.getElementById('recbtn');
+
+// ---------- 通用录音助手 ----------
+async function doRecord(stateEl, btnEl) {
   if (Recorder.recording) {
-    // 结束录音
     const out = await Recorder.stop();
-    rec = out;
-    btn.textContent = '✔ 已录好';
-    btn.style.background = ''; btn.style.color = '';
-    if (out.duration < 3) {
-      recstate.textContent = '只有 ' + out.duration.toFixed(1) + ' 秒，太短了，建议重录';
-    } else {
-      recstate.textContent = '已录 ' + out.duration.toFixed(1) + ' 秒（' + Math.round(out.size / 1024) + 'KB wav）';
-    }
-    player.src = out.url; player.style.display = 'block';
-    redobtn.style.display = 'block';
-    subbtn.style.display = 'block';
-    window.__recording = out; // 提交时上传用
+    return out;
+  }
+  try { await Recorder.start(); return null; }
+  catch (e) { alert('无法打开麦克风：' + (e.message || e)); throw e; }
+}
+
+// ---------- 第二部分 音准 ----------
+const recordings = {};
+let pitchKB = null;
+function pitchKBInit() {
+  if (pitchKB) return;
+  pitchKB = Piano.mount(document.getElementById('kb-pitch'), { range: [48, 83],
+    onNote: (m, n) => { recordings.pitchTarget = m; document.getElementById('pitch-hint').textContent = '刚弹的是 ' + n + '，让宝贝唱这个音'; } });
+}
+async function pitchToggleRec() {
+  pitchKBInit();
+  const btn = document.getElementById('pitch-recbtn'), st = document.getElementById('pitch-state');
+  if (!Recorder.recording) {
+    if (!recordings.pitchTarget) { st.textContent = '先点一个琴键听音哦~'; }
+    await doRecord(st, btn);
+    if (Recorder.recording) { btn.textContent = '⏺ 录音中…再点结束'; btn.classList.add('rec-on'); st.textContent = '正在录音'; }
     return;
   }
-  // 开始（新）录音
-  try {
-    rec = null; player.style.display = 'none'; redobtn.style.display = 'none'; subbtn.style.display = 'none';
-    await Recorder.start();
-    btn.textContent = '⏺ 录音中…再点一下结束';
-    btn.style.background = '#ffe3e3'; btn.style.color = '#c0392b';
-    recstate.textContent = '正在录音';
-  } catch (e) {
-    alert('无法打开麦克风：' + (e.message || e) + '\n请在微信里允许麦克风权限；如仍不行，可能需升级微信或换安卓手机测试');
+  const out = await Recorder.stop();
+  btn.textContent = '🎤 重录'; btn.classList.remove('rec-on');
+  if (out.duration < 1.5) { st.textContent = '太短了，再唱一次~'; return; }
+  recordings.pitch = { blob: out.blob, duration: out.duration, target: recordings.pitchTarget };
+  st.textContent = '已录 ' + out.duration.toFixed(1) + ' 秒';
+  document.getElementById('pitch-player').src = out.url;
+  document.getElementById('pitch-player').style.display = 'block';
+  document.getElementById('pitch-next').style.display = 'block';
+  showStarToast(null, '音准测试完成～');
+}
+
+// ---------- 第三部分 音域 ----------
+let rangeKB = null, rangePhase = 'low';
+const rangeRec = { low: null, high: null };
+function rangeKBInit(zone) {
+  if (!rangeKB) rangeKB = Piano.mount(document.getElementById('kb-range'), { range: [48, 83] });
+  rangeKB.clearHL();
+  if (zone === 'low') rangeKB.highlight([55,56,57,58,59,60]);       // 小字1组C及左5音 G3~C4
+  else rangeKB.highlight([72,73,74,75,76,77]);                       // 小字2组C及右5音 C5~F5
+}
+async function rangeToggleRec() {
+  const btn = document.getElementById('range-recbtn'), st = document.getElementById('range-state');
+  if (!Recorder.recording) {
+    await doRecord(st, btn);
+    if (Recorder.recording) { btn.textContent = '⏺ 录音中…再点结束'; btn.classList.add('rec-on'); st.textContent = '正在录' + (rangePhase==='low'?'低音':'高音') + '区'; }
+    return;
+  }
+  const out = await Recorder.stop();
+  btn.textContent = '🎤 重录'; btn.classList.remove('rec-on');
+  if (out.duration < 1.5) { st.textContent = '太短了，再唱一次~'; return; }
+  rangeRec[rangePhase] = { blob: out.blob, duration: out.duration };
+  st.textContent = (rangePhase==='low'?'低音区':'高音区') + '已录 ' + out.duration.toFixed(1) + ' 秒';
+  document.getElementById('range-next').style.display = 'block';
+  showStarToast(null, rangePhase==='low'?'低音唱得不错～':'高音也很棒～');
+}
+function rangeNext() {
+  if (rangePhase === 'low') {
+    rangePhase = 'high';
+    rangeKBInit('high');
+    document.getElementById('range-desc').textContent = '在高音区弹奏，并让宝贝跟着唱一唱~';
+    document.getElementById('range-state').textContent = '';
+    document.getElementById('range-recbtn').textContent = '🎤 跟唱';
+    document.getElementById('range-next').style.display = 'none';
+  } else {
+    goSection('rhythm');
   }
 }
-async function submit() {
-  subbtn.textContent = 'AI 评分中…'; subbtn.disabled = true;
-  // TODO 正式版: FormData 上传 window.__recording.blob 到后端 -> 后端调腾讯评分
-  const r = await XH.api('/api/score', { lead, ans, duration: rec ? rec.duration : 0 });
+
+// ---------- 第四部分 节奏 ----------
+const RHYTHMS = [ // 四二拍节奏库（拍为单位，1=一拍 0.5=半拍 2=两拍）
+  [1,1,1,1],[1,1,2,  1,1],[0.5,0.5,1,1,1],[1,0.5,0.5,1,1],[2,1,1,  1,1],
+  [1,1,0.5,0.5,1],[0.5,0.5,0.5,0.5,1,1],[1,2,  1,1,1],[1,1,1,0.5,0.5],[2,2,  1,1]
+];
+let curRhythm = RHYTHMS[Math.floor(Math.random()*RHYTHMS.length)];
+let tapTimes = [], tapping = false, tapStart = 0;
+document.getElementById('rhythm-pattern').textContent = curRhythm.map(b => b===2?'—':(b===1?'●':'·')).join(' ');
+function playRhythm() {
+  Piano.init();
+  const beat = 0.5; // 每拍0.5秒
+  let t = 0;
+  curRhythm.forEach(b => {
+    setTimeout(() => Piano.playMidi(72, 0.15, 1.2), t*1000); // C6短音当拍手声
+    t += b*beat;
+  });
+}
+function tapPad() {
+  if (!tapping) { tapping = true; tapTimes = []; tapStart = performance.now();
+    document.getElementById('rhythm-state').textContent = '跟着拍…（拍完点"完成")';
+    document.getElementById('tap-pad').textContent = '✋';
+    // 显示完成按钮逻辑：改为再次点击表示结束太反直觉，这里用计时—拍完最后一下停顿即结束
+    return;
+  }
+  const t = (performance.now() - tapStart)/1000;
+  tapTimes.push(t);
+  const pad = document.getElementById('tap-pad');
+  pad.style.transform = 'scale(.9)'; setTimeout(()=>pad.style.transform='', 100);
+  // 1.5秒没再拍 = 完成
+  clearTimeout(window.__tapDone);
+  window.__tapDone = setTimeout(finishRhythm, 1500);
+}
+function finishRhythm() {
+  if (!tapping) return; tapping = false;
+  document.getElementById('tap-pad').textContent = '👏';
+  if (tapTimes.length < 2) { document.getElementById('rhythm-state').textContent = '再多拍几下哦~'; return; }
+  const ioi = []; for (let i=1;i<tapTimes.length;i++) ioi.push(tapTimes[i]-tapTimes[i-1]);
+  recordings.rhythm = { taps: tapTimes, ioi: ioi, target: curRhythm };
+  document.getElementById('rhythm-state').textContent = '拍到 ' + tapTimes.length + ' 下，完成！';
+  document.getElementById('rhythm-next').style.display = 'block';
+  showStarToast(null, '节奏感真棒～');
+}
+
+// ---------- 第五部分 选歌清唱 ----------
+const SONGS = ['小星星','两只老虎','小兔子乖乖','小燕子','数鸭子','世上只有妈妈好','让我们荡起双桨','春天在哪里','童年','蜗牛与黄鹂鸟','孤勇者','少年','你笑起来真好看','小苹果','听我说谢谢你','勇气大爆发'];
+const SONG_LV = ['萌星','萌星','萌星','趣星','趣星','趣星','晨星','晨星','璨星','璨星','星光','星光','星辉','星辉','星耀','星耀'];
+let selSong = null, songRecording = false;
+const songlist = document.getElementById('songlist');
+SONGS.forEach((s, i) => {
+  const d = document.createElement('div'); d.className = 'song-item'; d.id = 'song-' + i;
+  d.innerHTML = `<div class="snm">${s}</div><div class="lv">${SONG_LV[i]}</div>
+    <button class="mini-btn" onclick="previewSong(${i},event)">▶ 试听</button>
+    <button class="mini-btn" id="songrec-${i}" onclick="songToggleRec(${i},event)">🎤 试唱</button>`;
+  d.addEventListener('click', () => {
+    document.querySelectorAll('.song-item').forEach(x => x.classList.remove('sel'));
+    d.classList.add('sel'); selSong = s;
+  });
+  songlist.appendChild(d);
+});
+function previewSong(i, ev) {
+  ev.stopPropagation();
+  alert('范唱音频正式版提供（' + SONGS[i] + '）');
+}
+async function songToggleRec(i, ev) {
+  ev.stopPropagation();
+  const btn = document.getElementById('songrec-' + i), st = document.getElementById('song-state');
+  selSong = SONGS[i];
+  document.querySelectorAll('.song-item').forEach(x => x.classList.remove('sel'));
+  document.getElementById('song-' + i).classList.add('sel');
+  if (!Recorder.recording) {
+    await doRecord(st, btn);
+    if (Recorder.recording) { btn.textContent = '⏺ 录音中'; btn.classList.add('rec-on'); st.textContent = '正在录《' + selSong + '》，唱完点同一个按钮结束'; }
+    return;
+  }
+  const out = await Recorder.stop();
+  btn.textContent = '🎤 重录'; btn.classList.remove('rec-on');
+  if (out.duration < 5) { st.textContent = '太短了，唱满一段副歌哦~'; return; }
+  recordings.song = { blob: out.blob, duration: out.duration, name: selSong };
+  st.textContent = '《' + selSong + '》已录 ' + out.duration.toFixed(0) + ' 秒';
+  document.getElementById('submit-btn').style.display = 'block';
+  showStarToast(null, '宝贝唱得真好听～');
+}
+
+// ---------- 提交 ----------
+async function uploadSection(blob, section, meta) {
+  if (!blob || !XH.base) return;
+  try {
+    await XH.api('/api/upload', { file: blob, leadId: lead.leadId || '', duration: 0, section: section, meta: JSON.stringify(meta || {}) });
+  } catch (e) { console.warn('upload fail', section, e); }
+}
+async function submitAll() {
+  const btn = document.getElementById('submit-btn');
+  btn.textContent = '上传中…'; btn.disabled = true;
+  // 逐环节上传录音（音准带目标音高 meta）
+  await uploadSection(recordings.pitch && recordings.pitch.blob, 'pitch', { target_midi: recordings.pitch && recordings.pitch.target });
+  await uploadSection(rangeRec.low && rangeRec.low.blob, 'range_low', {});
+  await uploadSection(rangeRec.high && rangeRec.high.blob, 'range_high', {});
+  await uploadSection(recordings.song && recordings.song.blob, 'song', { name: recordings.song && recordings.song.name });
+  // 节奏拍点作为 JSON 传给评分
+  const rhythmJson = recordings.rhythm ? JSON.stringify({ ioi: recordings.rhythm.ioi, target: recordings.rhythm.target }) : '';
+  btn.textContent = 'AI 评分中…';
+  const r = await XH.api('/api/score', { leadId: lead.leadId || '', rhythm: rhythmJson });
   if (r.ok) {
     sessionStorage.setItem('xh_dims', JSON.stringify(r.dims));
+    sessionStorage.setItem('xh_scoremeta', JSON.stringify({ real: r.real || [], pending: r.pending || [] }));
     sessionStorage.setItem('xh_ans', JSON.stringify(ans));
     XH.go('report.html');
-  } else { alert('评分失败，请重试'); subbtn.textContent = '提交测评，生成报告 →'; subbtn.disabled = false; }
+  } else { alert('评分失败，请重试'); btn.textContent = '提交测评，生成报告 →'; btn.disabled = false; }
 }
+
+// ---------- 开发预览：?sec=pitch|range|rhythm|song 直接跳到某环节 ----------
+(function(){
+  const sec = new URLSearchParams(location.search).get('sec');
+  if (!sec) return;
+  document.getElementById('envGate').classList.add('hide');
+  document.body.style.overflow = '';
+  document.querySelectorAll('.sec').forEach(s => s.classList.remove('on'));
+  const el = document.getElementById('sec-' + sec);
+  if (el) el.classList.add('on');
+  if (sec === 'pitch') pitchKBInit();
+  if (sec === 'range') {
+    const zone = new URLSearchParams(location.search).get('zone');
+    if (zone === 'high') { rangePhase = 'high'; rangeKBInit('high');
+      document.getElementById('range-desc').textContent = '在高音区弹奏，并让宝贝跟着唱一唱~'; }
+    else rangeKBInit('low');
+  }
+})();
 </script>
 </body>
 </html>

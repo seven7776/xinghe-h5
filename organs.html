@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>发声的小秘密 · 七彩和弦</title>
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .organ-svg { width: 100%; height: auto; display: block; }
+  .organ-hit { cursor: pointer; }
+  .organ-hit .dot { transition: transform .2s; transform-origin: center; transform-box: fill-box;
+                    animation: dotPulse 2.4s ease-in-out infinite; }
+  .organ-hit.on .dot { animation: none; transform: scale(1.35); }
+  @keyframes dotPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+  /* 呼吸动画: 肺+横膈膜轻轻起伏 */
+  #breathe { animation: br 4s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
+  @keyframes br { 0%,100% { transform: scale(1) translateY(0); } 50% { transform: scale(1.03) translateY(3px); } }
+  #orgCard { min-height: 120px; }
+  #orgCard .o-emoji { font-size: 34px; }
+  #orgCard .o-name { font-size: 19px; font-weight: 800; margin: 4px 0; }
+  #orgCard .o-role { font-size: 14px; color: var(--sub); line-height: 1.7; }
+  #orgCard .o-tip { margin-top: 8px; font-size: 13px; background: #fff7e0; border-radius: 10px; padding: 8px 10px; color: #8a6d00; }
+</style>
+</head>
+<body>
+<div class="brandhead">
+  <img class="logo" src="assets/logo-wide.png" alt="七彩和弦童声学院">
+</div>
+<div class="brandbar"></div>
+
+<div class="card">
+  <h2>🎵 发声的小秘密</h2>
+  <p class="desc">我们的声音是从哪里来的呢？点一点身体上的小亮点，看看每个部位是怎么帮我们唱歌的~</p>
+</div>
+
+<div class="card" style="padding:8px">
+  <!-- 少儿发声器官图: 侧脸头+正面胸, 气道 口鼻→咽→喉→气管→肺, 参照 BBC 儿童声乐科普图 -->
+  <svg class="organ-svg" viewBox="0 0 400 520" id="organSvg" aria-label="发声器官示意图">
+    <!-- ===== 人物轮廓(侧脸朝右, 正面胸) ===== -->
+    <path d="M 118 62
+             C 122 30 152 14 184 18
+             C 214 22 231 42 234 70
+             C 236 80 237 88 238 96
+             C 247 101 253 108 252 115
+             C 251 120 246 122 243 124
+             L 245 133
+             C 249 136 249 140 246 142
+             L 234 145
+             C 233 148 235 151 240 153
+             C 245 155 246 159 243 163
+             C 240 170 233 175 227 178
+             C 219 186 213 196 211 210
+             L 208 235
+             C 208 245 214 252 226 257
+             C 255 266 272 280 278 305
+             L 284 470
+             C 284 492 264 502 244 502
+             L 116 502
+             C 96 502 78 492 78 470
+             L 84 305
+             C 90 280 106 266 134 257
+             C 146 252 152 245 152 235
+             L 150 210
+             C 146 195 138 183 130 172
+             C 118 152 113 120 118 62 Z"
+          fill="#fdeee0" stroke="#e9b98d" stroke-width="2.5" stroke-linejoin="round"/>
+    <!-- 眼睛(笑眯眯) -->
+    <path d="M 216 88 Q 222 94 229 89" fill="none" stroke="#c98f5f" stroke-width="2.5" stroke-linecap="round"/>
+
+    <!-- ===== 头腔(共鸣区, 柔光) ===== -->
+    <g class="organ-hit" data-k="head">
+      <ellipse cx="172" cy="56" rx="42" ry="30" fill="#d9c9ff" opacity="0.55"/>
+      <ellipse cx="226" cy="86" rx="11" ry="7" fill="#d9c9ff" opacity="0.55"/>
+    </g>
+
+    <!-- ===== 鼻腔(鼻孔→咽的通道) ===== -->
+    <g class="organ-hit" data-k="nose">
+      <path d="M 242 116 L 217 120 C 209 122 205 126 206 133 L 236 129 C 241 127 243 121 242 116 Z" fill="#ffcf9f"/>
+      <circle cx="244" cy="121" r="2.5" fill="#d89766"/>
+    </g>
+    <!-- 腭(鼻腔口腔分界) -->
+    <path d="M 238 133 L 207 137" stroke="#e8a97e" stroke-width="2" stroke-linecap="round"/>
+
+    <!-- ===== 口腔 + 舌头 ===== -->
+    <g class="organ-hit" data-k="mouth">
+      <path d="M 239 142 C 228 141 218 143 214 147 C 211 152 214 158 222 160 L 236 158 C 241 154 241 147 239 142 Z" fill="#f98aa5"/>
+      <ellipse cx="225" cy="155" rx="10" ry="5.5" fill="#e35d7c"/>
+    </g>
+
+    <!-- ===== 咽(口鼻后方共用通道) ===== -->
+    <rect x="203" y="132" width="12" height="54" rx="6" fill="#ff9eb0" opacity="0.7"/>
+
+    <!-- ===== 声带/喉 ===== -->
+    <g class="organ-hit" data-k="cord">
+      <path d="M 201 210 C 197 197 199 188 206 184 L 216 184 C 223 188 225 197 221 210 Z" fill="#f78ca0"/>
+      <path d="M 204 193 L 218 198 M 204 200 L 218 195" stroke="#c2255c" stroke-width="2" stroke-linecap="round"/>
+    </g>
+
+    <!-- ===== 气管(带软骨环) ===== -->
+    <g class="organ-hit" data-k="trachea">
+      <path d="M 201 210 L 200 298 C 200 304 204 308 210 308 C 216 308 220 304 220 298 L 221 210 Z" fill="#ffd9c2"/>
+      <g stroke="#e8a97e" stroke-width="2" stroke-linecap="round">
+        <line x1="201" y1="220" x2="220" y2="220"/><line x1="201" y1="230" x2="220" y2="230"/>
+        <line x1="201" y1="240" x2="220" y2="240"/><line x1="201" y1="250" x2="220" y2="250"/>
+        <line x1="201" y1="260" x2="220" y2="260"/><line x1="201" y1="270" x2="220" y2="270"/>
+        <line x1="201" y1="280" x2="220" y2="280"/><line x1="200" y1="290" x2="220" y2="290"/>
+      </g>
+    </g>
+
+    <!-- ===== 呼吸组: 支气管+肺+横膈膜 ===== -->
+    <g id="breathe">
+      <!-- 支气管 -->
+      <path d="M 210 302 C 202 312 184 320 164 330" fill="none" stroke="#ffd9c2" stroke-width="10" stroke-linecap="round"/>
+      <path d="M 211 302 C 219 312 234 320 248 330" fill="none" stroke="#ffd9c2" stroke-width="10" stroke-linecap="round"/>
+      <!-- 肺 -->
+      <g class="organ-hit" data-k="lung">
+        <ellipse cx="142" cy="372" rx="40" ry="55" fill="#ffb3c2" transform="rotate(-8 142 372)"/>
+        <ellipse cx="230" cy="372" rx="40" ry="55" fill="#ffb3c2" transform="rotate(8 230 372)"/>
+        <!-- 肺内支气管树 -->
+        <g stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" fill="none" opacity="0.85">
+          <path d="M 164 332 C 158 344 152 356 148 368 M 152 352 L 138 348 M 150 362 L 136 362 M 149 372 L 138 380"/>
+          <path d="M 246 332 C 252 344 256 356 258 368 M 254 352 L 266 348 M 256 362 L 268 362 M 257 372 L 266 380"/>
+        </g>
+      </g>
+      <!-- 横膈膜 -->
+      <g class="organ-hit" data-k="diaphragm">
+        <path d="M 106 426 Q 182 396 260 426 L 260 442 Q 182 412 106 442 Z" fill="#ff97ab"/>
+      </g>
+    </g>
+
+    <!-- ===== 气流小粒子(吸气: 口→咽→气管→两肺) ===== -->
+    <g fill="#7fb3ff" opacity="0.9">
+      <circle cx="244" cy="148" r="3.5"><animateMotion dur="3.2s" repeatCount="indefinite"
+        path="M 244 148 C 228 150 216 152 211 158 C 207 165 208 178 210 192 L 210 240 L 210 296 C 206 308 192 318 170 326"/></circle>
+      <circle cx="244" cy="148" r="3.5"><animateMotion dur="3.2s" begin="1.6s" repeatCount="indefinite"
+        path="M 244 148 C 228 150 216 152 211 158 C 207 165 208 178 210 192 L 210 240 L 210 296 C 206 308 192 318 170 326"/></circle>
+      <circle cx="244" cy="148" r="3.5"><animateMotion dur="3.2s" begin="0.8s" repeatCount="indefinite"
+        path="M 244 148 C 228 150 216 152 211 158 C 207 165 208 178 210 192 L 210 240 L 210 296 C 214 308 226 318 244 326"/></circle>
+    </g>
+
+    <!-- ===== 标签 + 引线 + 可点圆点 ===== -->
+    <g font-size="15" font-weight="700" fill="#5b6cf0">
+      <g stroke="#b3bdfa" stroke-width="1.5" fill="none">
+        <line x1="64" y1="48" x2="156" y2="53"/>
+        <line x1="62" y1="118" x2="204" y2="123"/>
+        <line x1="62" y1="162" x2="212" y2="153"/>
+        <line x1="68" y1="206" x2="200" y2="197"/>
+        <line x1="330" y1="250" x2="224" y2="250"/>
+        <line x1="50" y1="368" x2="128" y2="368"/>
+        <line x1="316" y1="434" x2="216" y2="426"/>
+      </g>
+      <text x="26" y="52">头腔</text>
+      <text x="26" y="122">鼻腔</text>
+      <text x="26" y="166">口腔</text>
+      <text x="26" y="210">声带</text>
+      <text x="334" y="254">气管</text>
+      <text x="26" y="372">肺</text>
+      <text x="320" y="438">横膈膜</text>
+      <!-- 可点圆点(带光晕) -->
+      <g class="organ-hit" data-k="head"><circle cx="163" cy="54" r="14" fill="#9775fa" opacity="0.22"/><circle class="dot" cx="163" cy="54" r="9" fill="#9775fa"/></g>
+      <g class="organ-hit" data-k="nose"><circle cx="212" cy="124" r="14" fill="#ff922b" opacity="0.22"/><circle class="dot" cx="212" cy="124" r="9" fill="#ff922b"/></g>
+      <g class="organ-hit" data-k="mouth"><circle cx="222" cy="152" r="14" fill="#f06595" opacity="0.22"/><circle class="dot" cx="222" cy="152" r="9" fill="#f06595"/></g>
+      <g class="organ-hit" data-k="cord"><circle cx="211" cy="196" r="14" fill="#e8590c" opacity="0.22"/><circle class="dot" cx="211" cy="196" r="9" fill="#e8590c"/></g>
+      <g class="organ-hit" data-k="trachea"><circle cx="210" cy="250" r="14" fill="#4dabf7" opacity="0.22"/><circle class="dot" cx="210" cy="250" r="9" fill="#4dabf7"/></g>
+      <g class="organ-hit" data-k="lung"><circle cx="140" cy="366" r="14" fill="#ff6b9d" opacity="0.22"/><circle class="dot" cx="140" cy="366" r="9" fill="#ff6b9d"/></g>
+      <g class="organ-hit" data-k="diaphragm"><circle cx="200" cy="424" r="14" fill="#51cf66" opacity="0.22"/><circle class="dot" cx="200" cy="424" r="9" fill="#51cf66"/></g>
+    </g>
+  </svg>
+</div>
+
+<!-- 点器官后的讲解卡 -->
+<div class="card" id="orgCard">
+  <div style="text-align:center">
+    <div class="o-emoji" id="oEmoji">👆</div>
+    <div class="o-name" id="oName">点点看</div>
+    <div class="o-role" id="oRole">点身体上的小亮点，看看它怎么帮我们唱歌</div>
+    <div class="o-tip" id="oTip" style="display:none"></div>
+  </div>
+</div>
+
+<script src="assets/mock.js"></script>
+<script>
+const ORGANS = {
+  head:      { e:'🔔', n:'头腔',   role:'唱高音的时候，声音会跑到头顶这里来共鸣，让高音又亮又轻松！', tip:'小秘诀：唱高音时感觉声音在头顶"嗡嗡"响。' },
+  nose:      { e:'👃', n:'鼻腔',   role:'鼻腔是一个共鸣箱，让声音更集中、更亮。哼歌的时候它就在工作啦。', tip:'小秘诀：闭嘴哼"嗯——"，鼻子会痒痒的。' },
+  mouth:     { e:'👄', n:'口腔',   role:'嘴巴不光咬字，还是个大音箱！嘴巴张开的形状不一样，声音的颜色就不一样。', tip:'小秘诀：唱歌时嘴巴张大一点，声音更好听。' },
+  cord:      { e:'🎻', n:'声带',   role:'声带是藏在喉咙里的两片小琴弦！气息一吹，它就振动，声音就出来啦。', tip:'小秘诀：轻轻摸喉咙，说话时它会震动哦。' },
+  trachea:   { e:'🌬️', n:'气管',  role:'气管是气息的专用通道，把肺里的气稳稳地送到声带那里去。', tip:'小秘诀：深吸一口气，感受气流经过喉咙。' },
+  lung:      { e:'🫁', n:'肺',     role:'肺是气息的发动机！唱歌用的气都是从这里来的，气息足才能唱得长。', tip:'小秘诀：唱歌前先深深吸一口气存起来。' },
+  diaphragm: { e:'💪', n:'横膈膜', role:'横膈膜在肺的下面，是控制气息的"小活塞"。用肚子呼吸唱歌，就是它在用力！', tip:'小秘诀：躺下，把手放肚子上，吸气时肚子鼓起来。' },
+};
+const card = { e:document.getElementById('oEmoji'), n:document.getElementById('oName'), r:document.getElementById('oRole'), t:document.getElementById('oTip') };
+document.querySelectorAll('.organ-hit').forEach(el => {
+  el.addEventListener('click', () => {
+    const k = el.dataset.k, o = ORGANS[k];
+    if (!o) return;
+    document.querySelectorAll('.organ-hit').forEach(x => x.classList.remove('on'));
+    document.querySelectorAll('.organ-hit[data-k="'+k+'"]').forEach(x => x.classList.add('on'));
+    card.e.textContent = o.e; card.n.textContent = o.n; card.r.textContent = o.role;
+    card.t.textContent = o.tip; card.t.style.display = 'block';
+    showStarToast(null, o.n + '——' + '知道啦！');
+  });
+});
+</script>
+</body>
+</html>
