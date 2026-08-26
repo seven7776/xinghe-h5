@@ -280,12 +280,25 @@ SONGS.forEach((s, i) => {
   });
   songlist.appendChild(d);
 });
+let songAudio = null, songAudioBtn = null;
+function stopPreview() {
+  if (songAudio) { songAudio.pause(); songAudio.currentTime = 0; }
+  if (songAudioBtn) { songAudioBtn.textContent = '▶ 试听'; songAudioBtn = null; }
+}
 function previewSong(i, ev) {
   ev.stopPropagation();
-  alert('范唱音频正式版提供（' + SONGS[i] + '）');
+  const btn = ev.currentTarget;
+  if (songAudioBtn === btn) { stopPreview(); return; }   // 再点一次=停
+  stopPreview();
+  songAudio = new Audio('assets/audio/songs/s' + String(i+1).padStart(2,'0') + '.mp3');
+  songAudioBtn = btn; btn.textContent = '⏸ 停止';
+  songAudio.onended = () => stopPreview();
+  songAudio.onerror = () => { stopPreview(); alert('范唱音频还没配好（' + SONGS[i] + '）'); };
+  songAudio.play().catch(() => { stopPreview(); alert('范唱音频还没配好（' + SONGS[i] + '）'); });
 }
 async function songToggleRec(i, ev) {
   ev.stopPropagation();
+  stopPreview();   // 试唱前停掉试听, 防外放串进麦克风
   const btn = document.getElementById('songrec-' + i), st = document.getElementById('song-state');
   selSong = SONGS[i];
   document.querySelectorAll('.song-item').forEach(x => x.classList.remove('sel'));
