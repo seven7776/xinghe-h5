@@ -191,6 +191,7 @@ const ORGANS = {
   diaphragm: { e:'💪', n:'横膈膜', role:'横膈膜在肺的下面，是控制气息的"小活塞"。用肚子呼吸唱歌，就是它在用力！', tip:'小秘诀：躺下，把手放肚子上，吸气时肚子鼓起来。' },
 };
 const card = { e:document.getElementById('oEmoji'), n:document.getElementById('oName'), r:document.getElementById('oRole'), t:document.getElementById('oTip') };
+const LEARN_PRAISE = ['太棒了！','真聪明！','好厉害！','记住啦！','答对啦！'];
 document.querySelectorAll('.organ-hit').forEach(el => {
   el.addEventListener('click', () => {
     const k = el.dataset.k, o = ORGANS[k];
@@ -199,7 +200,7 @@ document.querySelectorAll('.organ-hit').forEach(el => {
     document.querySelectorAll('.organ-hit[data-k="'+k+'"]').forEach(x => x.classList.add('on'));
     card.e.textContent = o.e; card.n.textContent = o.n; card.r.textContent = o.role;
     card.t.textContent = o.tip; card.t.style.display = 'block';
-    showStarToast(null, o.n + '——' + '知道啦！');
+    showStarToast(LEARN_PRAISE[Math.floor(Math.random()*LEARN_PRAISE.length)], '这是' + o.n);
   });
 });
 </script>
