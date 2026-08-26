@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>发声的小秘密 · 3D版 · 七彩和弦</title>
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  #stage { position: relative; height: 430px; border-radius: 16px; overflow: hidden;
+           background: linear-gradient(180deg, #4a3b47 0%, #2c2430 100%); }
+  #stage canvas { display: block; }
+  #organChip { position: absolute; pointer-events: none; transform: translate(-50%, -130%);
+               background: rgba(255,255,255,.92); border-radius: 999px; padding: 3px 12px;
+               font-size: 13px; font-weight: 700; color: #5b6cf0; box-shadow: 0 2px 8px rgba(90,80,60,.15);
+               display: none; white-space: nowrap; }
+  #hint3d { position: absolute; bottom: 10px; left: 0; right: 0; text-align: center;
+            font-size: 12px; color: #d8c9bb; pointer-events: none; }
+  #orgCard { min-height: 120px; }
+  #orgCard .o-emoji { font-size: 34px; }
+  #orgCard .o-name { font-size: 19px; font-weight: 800; margin: 4px 0; }
+  #orgCard .o-role { font-size: 14px; color: var(--sub); line-height: 1.7; }
+  #orgCard .o-tip { margin-top: 8px; font-size: 13px; background: #fff7e0; border-radius: 10px; padding: 8px 10px; color: #8a6d00; }
+</style>
+</head>
+<body>
+<div class="brandhead">
+  <img class="logo" src="assets/logo-wide.png" alt="七彩和弦童声学院">
+</div>
+<div class="brandbar"></div>
+
+<div class="card">
+  <h2>🎵 发声的小秘密 · 3D</h2>
+  <p class="desc">转一转、点一点，看看声音在身体里是怎么发出来的~</p>
+</div>
+
+<div class="card" style="padding:8px">
+  <div id="stage">
+    <div id="organChip"></div>
+    <div id="hint3d">手指拖动旋转 · 点亮点听声音</div>
+  </div>
+</div>
+
+<div class="card" id="orgCard">
+  <div style="text-align:center">
+    <div class="o-emoji" id="oEmoji">👆</div>
+    <div class="o-name" id="oName">点点看</div>
+    <div class="o-role" id="oRole">点身体上的器官，听听它的声音</div>
+    <div class="o-tip" id="oTip" style="display:none"></div>
+  </div>
+</div>
+
+<div class="card" onclick="XH.go('organs.html')" style="cursor:pointer;display:flex;align-items:center;gap:12px">
+  <div style="font-size:24px">🗺️</div>
+  <div style="flex:1"><b>平面图解版</b><p class="desc" style="margin:2px 0 0">加载更快的老版本在这里</p></div>
+  <div style="color:var(--sub);font-size:20px">›</div>
+</div>
+
+<div class="card" onclick="XH.go('index.html')" style="cursor:pointer;display:flex;align-items:center;gap:12px">
+  <div style="font-size:30px">🎤</div>
+  <div style="flex:1"><b>想测测孩子的声音条件？</b><p class="desc" style="margin:2px 0 0">AI 声乐潜能测评 · 15 分钟出五维报告</p></div>
+  <div style="color:var(--sub);font-size:20px">›</div>
+</div>
+
+<script src="assets/vendor/three.min.js"></script>
+<script src="assets/vendor/OrbitControls.js"></script>
+<script src="assets/mock.js"></script>
+<script>
+(function () {
+  const stage = document.getElementById('stage');
+  const chip = document.getElementById('organChip');
+  const W = () => stage.clientWidth, H = () => stage.clientHeight;
+
+  // ---------- 基础场景 ----------
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  } catch (e) {
+    stage.innerHTML = '<p style="padding:40px 20px;text-align:center;color:#a08b74">你的浏览器暂不支持 3D，点下方"平面图解版"也一样能学~</p>';
+    return;
+  }
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(W(), H());
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.0;
+  stage.insertBefore(renderer.domElement, stage.firstChild);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(40, W() / H(), 0.1, 200);
+  camera.position.set(33, 17, 43);
+
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.target.set(1.5, 18, 0);
+  controls.enableDamping = true; controls.dampingFactor = 0.08;
+  controls.minDistance = 18; controls.maxDistance = 90;
+  controls.autoRotate = true; controls.autoRotateSpeed = 0.7;
+  controls.enablePan = false;
+
+  // ---------- 灯光 ----------
+  scene.add(new THREE.HemisphereLight(0xfff7ec, 0xd8c3b0, 0.75));
+  const key = new THREE.DirectionalLight(0xfff2e0, 1.15);
+  key.position.set(18, 34, 22); key.castShadow = true;
+  key.shadow.mapSize.set(1024, 1024);
+  key.shadow.camera.left = -20; key.shadow.camera.right = 20;
+  key.shadow.camera.top = 30; key.shadow.camera.bottom = -10;
+  scene.add(key);
+  const rim = new THREE.DirectionalLight(0xb3c6ff, 0.7);
+  rim.position.set(-22, 20, -18); scene.add(rim);
+
+  // 地面软阴影
+  const ground = new THREE.Mesh(
+    new THREE.CircleGeometry(22, 48),
+    new THREE.ShadowMaterial({ opacity: 0.13 })
+  );
+  ground.rotation.x = -Math.PI / 2; ground.position.y = -2.2; ground.receiveShadow = true;
+  scene.add(ground);
+
+  // ---------- 材质 ----------
+  const skinMat = new THREE.MeshPhysicalMaterial({
+    color: 0xf0c9a0, transparent: true, opacity: 0.2, roughness: 0.5,
+    metalness: 0, clearcoat: 0.2, clearcoatRoughness: 0.7,
+    side: THREE.DoubleSide, depthWrite: false,
+  });
+  const M = {
+    head:  new THREE.MeshStandardMaterial({ color: 0x9a7bf0, emissive: 0x7c5ce0, emissiveIntensity: 0.55, transparent: true, opacity: 0.62, roughness: 0.55 }),
+    nose:  new THREE.MeshStandardMaterial({ color: 0xff9a4d, emissive: 0xff9a4d, emissiveIntensity: 0.22, roughness: 0.5 }),
+    mouth: new THREE.MeshStandardMaterial({ color: 0xf76b92, emissive: 0xf76b92, emissiveIntensity: 0.22, roughness: 0.5 }),
+    tongue:new THREE.MeshStandardMaterial({ color: 0xd94f6e, emissive: 0xd94f6e, emissiveIntensity: 0.18, roughness: 0.45 }),
+    cord:  new THREE.MeshStandardMaterial({ color: 0xea4a6a, emissive: 0xea4a6a, emissiveIntensity: 0.25, roughness: 0.4 }),
+    trachea: new THREE.MeshStandardMaterial({ color: 0xffbd7a, emissive: 0xffbd7a, emissiveIntensity: 0.2, roughness: 0.55 }),
+    ring:  new THREE.MeshStandardMaterial({ color: 0xe8955a, emissive: 0xe8955a, emissiveIntensity: 0.18, roughness: 0.5 }),
+    lung:  new THREE.MeshStandardMaterial({ color: 0xff7d9c, emissive: 0xff7d9c, emissiveIntensity: 0.22, roughness: 0.55 }),
+    bronchus: new THREE.MeshStandardMaterial({ color: 0xffd3de, emissive: 0xffd3de, emissiveIntensity: 0.2, roughness: 0.45 }),
+    diaphragm: new THREE.MeshStandardMaterial({ color: 0xe86484, emissive: 0xe86484, emissiveIntensity: 0.22, roughness: 0.5 }),
+    particle: new THREE.MeshBasicMaterial({ color: 0x4d8dff }),
+  };
+
+  const pickables = [];   // 可点网格 [{mesh, k}]
+  const organGroups = {}; // k -> Group
+  function reg(g, k) { g.traverse(o => { if (o.isMesh) { o.userData.k = k; pickables.push(o); } }); organGroups[k] = g; scene.add(g); return g; }
+  function shadowed(g) { g.traverse(o => { if (o.isMesh) { o.castShadow = true; } }); return g; }
+
+  // ---------- 外壳(半透明) ----------
+  const shell = new THREE.Group();
+  const cranium = new THREE.Mesh(new THREE.SphereGeometry(8.4, 48, 32), skinMat);
+  cranium.position.set(0, 32, 0); cranium.scale.set(1, 1.12, 0.95);
+  const jaw = new THREE.Mesh(new THREE.SphereGeometry(4.6, 32, 24), skinMat);
+  jaw.position.set(3.6, 25.6, 0); jaw.scale.set(1.05, 0.85, 0.9);
+  const noseBump = new THREE.Mesh(new THREE.SphereGeometry(1.7, 24, 16), skinMat);
+  noseBump.position.set(8.3, 29.6, 0); noseBump.scale.set(1.15, 0.9, 0.8);
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 3.8, 6, 32), skinMat);
+  neck.position.set(1, 21.5, 0);
+  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(9.6, 13, 8, 32), skinMat);
+  torso.position.set(1, 9.5, 0); torso.scale.set(1, 1, 0.72);
+  const shoulder = new THREE.Mesh(new THREE.SphereGeometry(9.6, 32, 24), skinMat);
+  shoulder.position.set(1, 17, 0); shoulder.scale.set(1.12, 0.55, 0.72);
+  shell.add(cranium, jaw, noseBump, neck, torso, shoulder);
+  shell.renderOrder = 10;
+  scene.add(shell);
+
+  // ---------- 器官 ----------
+  // 头腔共鸣区
+  const gHead = new THREE.Group();
+  const headGlow = new THREE.Mesh(new THREE.SphereGeometry(4.6, 32, 24), M.head);
+  headGlow.position.set(0, 34.5, 0); headGlow.scale.set(1.05, 0.75, 0.9);
+  gHead.add(headGlow); reg(gHead, 'head');
+
+  // 鼻腔: 鼻孔→咽 的小弯管
+  const gNose = new THREE.Group();
+  const noseCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(8.6, 28.8, 0), new THREE.Vector3(6.5, 29.3, 0),
+    new THREE.Vector3(4.5, 29.0, 0), new THREE.Vector3(3.4, 27.8, 0),
+  ]);
+  gNose.add(new THREE.Mesh(new THREE.TubeGeometry(noseCurve, 24, 1.05, 12), M.nose));
+  const nostril = new THREE.Mesh(new THREE.SphereGeometry(0.7, 12, 10), new THREE.MeshStandardMaterial({ color: 0xd89766 }));
+  nostril.position.set(8.7, 28.7, 0); gNose.add(nostril);
+  reg(shadowed(gNose), 'nose');
+
+  // 口腔 + 舌头
+  const gMouth = new THREE.Group();
+  const oral = new THREE.Mesh(new THREE.SphereGeometry(2.3, 24, 18), M.mouth);
+  oral.position.set(5.4, 26.6, 0); oral.scale.set(1.15, 0.85, 0.9);
+  const tongue = new THREE.Mesh(new THREE.SphereGeometry(1.35, 20, 14), M.tongue);
+  tongue.position.set(5.2, 25.9, 0); tongue.scale.set(1.2, 0.7, 0.9);
+  gMouth.add(oral, tongue); reg(shadowed(gMouth), 'mouth');
+
+  // 咽(口鼻后方的共用竖管, 随口腔一起点亮)
+  const pharynx = new THREE.Mesh(new THREE.CylinderGeometry(1.25, 1.35, 5.5, 16), M.mouth);
+  pharynx.position.set(3.1, 25.2, 0);
+  gMouth.add(pharynx);
+
+  // 声带/喉
+  const gCord = new THREE.Group();
+  const larynx = new THREE.Mesh(new THREE.SphereGeometry(2.0, 24, 18), M.cord);
+  larynx.position.set(2.7, 21.2, 0); larynx.scale.set(1, 1.15, 0.95);
+  const cordA = new THREE.Mesh(new THREE.BoxGeometry(0.25, 1.6, 0.7), new THREE.MeshStandardMaterial({ color: 0xc2255c }));
+  cordA.position.set(2.45, 21.2, 0.35); cordA.rotation.z = 0.12;
+  const cordB = cordA.clone(); cordB.position.z = -0.35; cordB.rotation.z = 0.12;
+  gCord.add(larynx, cordA, cordB); reg(shadowed(gCord), 'cord');
+
+  // 气管 + 软骨环
+  const gTr = new THREE.Group();
+  const trachea = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.3, 9.5, 20), M.trachea);
+  trachea.position.set(2.7, 15.4, 0);
+  gTr.add(trachea);
+  for (let i = 0; i < 8; i++) {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(1.32, 0.26, 10, 24), M.ring);
+    ring.rotation.x = Math.PI / 2; ring.position.set(2.7, 19.4 - i * 1.12, 0);
+    gTr.add(ring);
+  }
+  reg(shadowed(gTr), 'trachea');
+
+  // 肺(两片) + 支气管树
+  const gLung = new THREE.Group();
+  function lung(cx, mirror) {
+    const g = new THREE.Group();
+    const lobe = new THREE.Mesh(new THREE.SphereGeometry(4.3, 32, 24), M.lung);
+    lobe.position.set(cx, 7.6, 0); lobe.scale.set(0.85, 1.28, 0.66);
+    g.add(lobe);
+    const main = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.72, 4.4, 12), M.bronchus);
+    main.position.set(cx * 0.55 + 1.35, 10.6, 0); main.rotation.z = mirror * 0.62;
+    g.add(main);
+    for (let j = 0; j < 3; j++) {
+      const br = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 2.6, 10), M.bronchus);
+      const bx = cx + (mirror > 0 ? 1 : -1) * (0.6 + j * 0.9);
+      br.position.set(bx, 8.6 - j * 0.9, (j - 1) * 0.5);
+      br.rotation.z = mirror * (0.9 + j * 0.35);
+      g.add(br);
+    }
+    return g;
+  }
+  const lungL = lung(-3.6, -1), lungR = lung(6.4, 1);
+  gLung.add(lungL, lungR);
+  // 气管分叉
+  const bifur = new THREE.Mesh(new THREE.SphereGeometry(1.5, 16, 12), M.trachea);
+  bifur.position.set(2.7, 10.4, 0); gLung.add(bifur);
+  reg(shadowed(gLung), 'lung');
+
+  // 横膈膜(穹顶)
+  const gDia = new THREE.Group();
+  const dia = new THREE.Mesh(new THREE.SphereGeometry(9.0, 40, 20, 0, Math.PI * 2, 0, Math.PI * 0.42), M.diaphragm);
+  dia.position.set(1, 0.6, 0); dia.scale.set(1.05, 0.62, 0.72);
+  gDia.add(dia); reg(shadowed(gDia), 'diaphragm');
+
+  // ---------- 气流粒子 ----------
+  const airPath = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(9.2, 26.8, 0),   // 嘴
+    new THREE.Vector3(4.6, 26.4, 0),   // 口腔后
+    new THREE.Vector3(3.2, 24.5, 0),   // 咽
+    new THREE.Vector3(2.7, 20.5, 0),   // 喉
+    new THREE.Vector3(2.7, 15.0, 0),   // 气管
+    new THREE.Vector3(2.7, 10.8, 0),   // 分叉
+    new THREE.Vector3(-0.6, 9.0, 0),   // 左支气管
+    new THREE.Vector3(-3.4, 8.0, 0),   // 左肺
+  ]);
+  const airPathR = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(9.2, 26.8, 0), new THREE.Vector3(4.6, 26.4, 0),
+    new THREE.Vector3(3.2, 24.5, 0), new THREE.Vector3(2.7, 20.5, 0),
+    new THREE.Vector3(2.7, 15.0, 0), new THREE.Vector3(2.7, 10.8, 0),
+    new THREE.Vector3(4.8, 9.0, 0), new THREE.Vector3(6.2, 8.0, 0),
+  ]);
+  const particles = [];
+  for (let i = 0; i < 4; i++) {
+    const p = new THREE.Mesh(new THREE.SphereGeometry(0.42, 10, 8), M.particle);
+    p.userData = { t: i / 4, path: i % 2 ? airPathR : airPath };
+    scene.add(p); particles.push(p);
+  }
+
+  // ---------- 器官资料 + 声音 ----------
+  const ORGANS = {
+    head:      { e:'🔔', n:'头腔',   anchor: new THREE.Vector3(0, 36, 0),   role:'唱高音的时候，声音会跑到头顶这里来共鸣，让高音又亮又轻松！听——这是高高的哼鸣声。', tip:'小秘诀：唱高音时感觉声音在头顶"嗡嗡"响。' },
+    nose:      { e:'👃', n:'鼻腔',   anchor: new THREE.Vector3(6.5, 30, 0), role:'鼻腔是一个共鸣箱，让声音更集中、更亮。听——这是闭着嘴哼歌的声音。', tip:'小秘诀：闭嘴哼"嗯——"，鼻子会痒痒的。' },
+    mouth:     { e:'👄', n:'口腔',   anchor: new THREE.Vector3(5.4, 27.5, 0), role:'嘴巴不光咬字，还是个大音箱！听——张开嘴唱"啊"，声音马上变亮了。', tip:'小秘诀：唱歌时嘴巴张大一点，声音更好听。' },
+    cord:      { e:'🎻', n:'声带',   anchor: new THREE.Vector3(2.7, 22.5, 0), role:'声带是藏在喉咙里的两片小琴弦！气息一吹，它就振动。听——这就是歌声最开始的样子。', tip:'小秘诀：轻轻摸喉咙，说话时它会震动哦。' },
+    trachea:   { e:'🌬️', n:'气管',  anchor: new THREE.Vector3(2.7, 15, 0),  role:'气管是气息的专用通道，把肺里的气稳稳地送到声带那里去。听——这是气流的呼呼声。', tip:'小秘诀：深吸一口气，感受气流经过喉咙。' },
+    lung:      { e:'🫁', n:'肺',     anchor: new THREE.Vector3(-3.6, 8.5, 0), role:'肺是气息的发动机！唱歌用的气都是从这里来的。听——这是深深吸气的声音。', tip:'小秘诀：唱歌前先深深吸一口气存起来。' },
+    diaphragm: { e:'💪', n:'横膈膜', anchor: new THREE.Vector3(1, 4.5, 0),  role:'横膈膜在肺的下面，是控制气息的"小活塞"。听——它在一下一下地弹跳用力！', tip:'小秘诀：躺下，把手放肚子上，吸气时肚子鼓起来。' },
+  };
+  const LEARN_PRAISE = ['太棒了！','真聪明！','好厉害！','记住啦！','答对啦！'];
+  const card = { e:document.getElementById('oEmoji'), n:document.getElementById('oName'), r:document.getElementById('oRole'), t:document.getElementById('oTip') };
+  let curAudio = null, selected = null, pulseT = 0;
+
+  function select(k) {
+    const o = ORGANS[k]; if (!o) return;
+    if (selected && organGroups[selected]) organGroups[selected].traverse(m => { if (m.material && m.material._hi) { m.material.emissiveIntensity = m.material._hi; } });
+    selected = k; pulseT = 0;
+    organGroups[k].traverse(m => { if (m.material && m.material.emissive) { if (m.material._hi === undefined) m.material._hi = m.material.emissiveIntensity || 0; } });
+    card.e.textContent = o.e; card.n.textContent = o.n; card.r.textContent = o.role;
+    card.t.textContent = o.tip; card.t.style.display = 'block';
+    try { if (curAudio) { curAudio.pause(); curAudio.currentTime = 0; }
+      curAudio = new Audio('assets/audio/' + k + '.mp3'); curAudio.play().catch(() => {}); } catch (e) {}
+    showStarToast(LEARN_PRAISE[Math.floor(Math.random() * LEARN_PRAISE.length)], '这是' + o.n);
+    chip.textContent = o.e + ' ' + o.n; chip.style.display = 'block';
+  }
+
+  // 点按拾取
+  const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
+  let downX = 0, downY = 0;
+  renderer.domElement.addEventListener('pointerdown', e => { downX = e.clientX; downY = e.clientY; controls.autoRotate = false; });
+  renderer.domElement.addEventListener('pointerup', e => {
+    if (Math.hypot(e.clientX - downX, e.clientY - downY) > 8) return; // 拖动不算点
+    const r = renderer.domElement.getBoundingClientRect();
+    ptr.x = ((e.clientX - r.left) / r.width) * 2 - 1;
+    ptr.y = -((e.clientY - r.top) / r.height) * 2 + 1;
+    ray.setFromCamera(ptr, camera);
+    const hits = ray.intersectObjects(pickables, false);
+    if (hits.length) select(hits[0].object.userData.k);
+  });
+
+  // ---------- 动画循环 ----------
+  const clock = new THREE.Clock();
+  const v3 = new THREE.Vector3();
+  function animate() {
+    requestAnimationFrame(animate);
+    const t = clock.getElapsedTime();
+    // 呼吸: 肺轻胀, 横膈膜下移
+    const br = Math.sin(t * Math.PI / 2.2);
+    lungL.scale.setScalar(1 + br * 0.035); lungR.scale.setScalar(1 + br * 0.035);
+    gDia.position.y = -br * 0.35;
+    // 气流粒子
+    particles.forEach(p => {
+      p.userData.t = (p.userData.t + 0.0042) % 1;
+      p.userData.path.getPointAt(p.userData.t, v3);
+      p.position.copy(v3);
+    });
+    // 选中器官脉冲
+    if (selected) {
+      pulseT += 0.06;
+      const s = 0.55 + Math.abs(Math.sin(pulseT)) * 0.8;
+      organGroups[selected].traverse(m => { if (m.material && m.material.emissive) { m.material.emissive.setHex(m.material.color.getHex()); m.material.emissiveIntensity = s; } });
+    }
+    // 标签跟随
+    if (selected && chip.style.display === 'block') {
+      v3.copy(ORGANS[selected].anchor).project(camera);
+      chip.style.left = (v3.x * 0.5 + 0.5) * W() + 'px';
+      chip.style.top = (-v3.y * 0.5 + 0.5) * H() + 'px';
+    }
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  addEventListener('resize', () => {
+    camera.aspect = W() / H(); camera.updateProjectionMatrix();
+    renderer.setSize(W(), H());
+  });
+})();
+</script>
+</body>
+</html>
