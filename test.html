@@ -290,7 +290,7 @@ function previewSong(i, ev) {
   const btn = ev.currentTarget;
   if (songAudioBtn === btn) { stopPreview(); return; }   // 再点一次=停
   stopPreview();
-  songAudio = new Audio('assets/audio/songs/s' + String(i+1).padStart(2,'0') + '.mp3');
+  songAudio = new Audio('assets/audio/songs2/s' + String(i+1).padStart(2,'0') + '.mp3');
   songAudioBtn = btn; btn.textContent = '⏸ 停止';
   songAudio.onended = () => stopPreview();
   songAudio.onerror = () => { stopPreview(); alert('范唱音频还没配好（' + SONGS[i] + '）'); };
@@ -318,20 +318,20 @@ async function songToggleRec(i, ev) {
 }
 
 // ---------- 提交 ----------
-async function uploadSection(blob, section, meta) {
+async function uploadSection(blob, section, meta, duration) {
   if (!blob || !XH.base) return;
   try {
-    await XH.api('/api/upload', { file: blob, leadId: lead.leadId || '', duration: 0, section: section, meta: JSON.stringify(meta || {}) });
+    await XH.api('/api/upload', { file: blob, leadId: lead.leadId || '', duration: duration || 0, section: section, meta: JSON.stringify(meta || {}) });
   } catch (e) { console.warn('upload fail', section, e); }
 }
 async function submitAll() {
   const btn = document.getElementById('submit-btn');
   btn.textContent = '上传中…'; btn.disabled = true;
-  // 逐环节上传录音（音准带目标音高 meta）
-  await uploadSection(recordings.pitch && recordings.pitch.blob, 'pitch', { target_midi: recordings.pitch && recordings.pitch.target });
-  await uploadSection(rangeRec.low && rangeRec.low.blob, 'range_low', {});
-  await uploadSection(rangeRec.high && rangeRec.high.blob, 'range_high', {});
-  await uploadSection(recordings.song && recordings.song.blob, 'song', { name: recordings.song && recordings.song.name });
+  // 逐环节上传录音（音准带目标音高 meta, duration 传真实值）
+  await uploadSection(recordings.pitch && recordings.pitch.blob, 'pitch', { target_midi: recordings.pitch && recordings.pitch.target }, recordings.pitch && recordings.pitch.duration);
+  await uploadSection(rangeRec.low && rangeRec.low.blob, 'range_low', {}, rangeRec.low && rangeRec.low.duration);
+  await uploadSection(rangeRec.high && rangeRec.high.blob, 'range_high', {}, rangeRec.high && rangeRec.high.duration);
+  await uploadSection(recordings.song && recordings.song.blob, 'song', { name: recordings.song && recordings.song.name }, recordings.song && recordings.song.duration);
   // 节奏拍点作为 JSON 传给评分
   const rhythmJson = recordings.rhythm ? JSON.stringify({ ioi: recordings.rhythm.ioi, target: recordings.rhythm.target }) : '';
   btn.textContent = 'AI 评分中…';

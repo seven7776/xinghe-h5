@@ -2,7 +2,7 @@
 // 真后端接上后，把 fetch('/api/xxx') 直连即可，页面代码不用改。
 const XH = {
   // ---- 后端地址：本地联调走真后端，线上 Pages 暂走 mock ----
-  base: (location.protocol === 'https:' && location.hostname.includes('github.io')) ? null : 'http://127.0.0.1:8890',
+  base: (location.protocol === 'https:' && location.hostname.includes('github.io')) ? null : 'http://' + location.hostname + ':8890',
 
   async api(path, body) {
     if (!this.base) { // 线上演示 -> mock
