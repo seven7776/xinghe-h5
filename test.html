@@ -290,7 +290,7 @@ function previewSong(i, ev) {
   const btn = ev.currentTarget;
   if (songAudioBtn === btn) { stopPreview(); return; }   // 再点一次=停
   stopPreview();
-  songAudio = new Audio('assets/audio/songs2/s' + String(i+1).padStart(2,'0') + '.mp3');
+  songAudio = new Audio('assets/audio/songs3/s' + String(i+1).padStart(2,'0') + '.mp3');
   songAudioBtn = btn; btn.textContent = '⏸ 停止';
   songAudio.onended = () => stopPreview();
   songAudio.onerror = () => { stopPreview(); alert('范唱音频还没配好（' + SONGS[i] + '）'); };
